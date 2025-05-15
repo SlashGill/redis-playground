@@ -1,0 +1,68 @@
+services:
+  postgres:
+    image: postgres:17.5
+    container_name: postgres
+    environment:
+      - POSTGRES_PASSWORD=123456
+      - TZ=Asia/Taipei
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres:/var/lib/postgresql/data  
+    networks:
+      - gill-docker-network
+    restart: unless-stopped
+
+  redis:
+    image: redis:8.0.1
+    container_name: redis
+    command: redis-server --save 60 1 --loglevel warning
+    volumes:
+      - ./redis:/data
+    ports:
+      - "5540:5540"  
+    networks:
+      - gill-docker-network
+    restart: unless-stopped
+
+  redisinsight:
+    image: redis/redisinsight:2.68.0
+    container_name: redisinsight
+    ports:
+      - "5540:5540"
+    networks:
+      - gill-docker-network
+    restart: unless-stopped
+
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:25.0.4
+    container_name: cloudbeaver
+    ports:
+      - "8978:8978"
+    volumes:
+      - ./cloudbeaver/workspace:/opt/cloudbeaver/workspace
+    networks:
+      - gill-docker-network
+    restart: unless-stopped
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: cadvisor
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    privileged: true
+    networks:
+      - gill-docker-network
+    restart: unless-stopped
+
+networks:
+  gill-docker-network:
+    driver: bridge
